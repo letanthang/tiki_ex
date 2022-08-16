@@ -12,30 +12,8 @@ defmodule Tiki.Support.Helpers do
     %{
       timeout: options[:timeout],
       proxy: options[:proxy],
-      credential: Map.new(options[:credential] || []),
       middlewares: options[:middlewares] || []
     }
-  end
-
-  @doc """
-  Build signature from request params and api_name
-  """
-  @spec sign(map(), String.t(), String.t(), atom()) :: String.t()
-  def sign(params, api_name, secret_key, algorithm \\ :sha256) do
-    data =
-      params
-      |> Enum.sort_by(&to_string(elem(&1, 0)))
-      |> Enum.reduce(api_name, fn
-        {_, v}, acc when is_nil(v) -> acc
-        {k, v}, acc when is_map(v) -> "#{acc}#{k}#{Jason.encode!(v)}"
-        {k, v}, acc -> "#{acc}#{k}#{v}"
-      end)
-
-    data = "#{secret_key}#{data}#{secret_key}"
-
-    :crypto.mac(:hmac, algorithm, secret_key, data)
-    |> Base.encode16()
-    |> String.downcase()
   end
 
   @doc """

@@ -5,8 +5,6 @@ defmodule Tiki.Client do
 
       config :tiki, :config,
             proxy: "http://127.0.0.1:9090",
-            client_id: "",
-            client_secret: "",
             timeout: 10_000,
             response_handler: MyModule,
             middlewares: [] # custom middlewares
@@ -16,88 +14,55 @@ defmodule Tiki.Client do
 
   @default_endpoint "https://api.tiki.vn/integration/v2/"
   @doc """
-  Create a new client with given credential.
-  Credential can be set using config.
-
-      config :tiktok, :config
-            client_id: "",
-            client_secret: ""
-
-  Or could be pass via `opts` argument
-
+  Create new client
   **Options**
-  - `credential [map]`: app credential for request.
-    Credential map follow schema belows
-
-    client_id: [type: :string, required: true],
-    client_secret: [type: :string, required: true],
-    access_token: :string,
-    shop_id: :string
-
-
+  - `access_token [string]`: access token,
   - `endpoint [string]`: custom endpoint
   - `form_data [boolean]`: use form data, using json by default
-  - `skip_signing [boolean]`: Skip signing the data before sending a request
   """
 
   def new(opts \\ []) do
     config = Tiki.Support.Helpers.get_config()
 
-    proxy_adapter =
+    # if proxy config -> set for adapter
+    options =
       if config.proxy do
-        [proxy: config.proxy]
+        [adapter: [proxy: config.proxy]]
       else
-        nil
+        []
       end
 
-    credential = Map.merge(config.credential, opts[:credential] || %{})
-    skip_signing = opts[:skip_signing] || false
+    middlewares = [
+      {Tesla.Middleware.BaseUrl, opts[:endpoint] || @default_endpoint},
+      {Tesla.Middleware.Opts, options},
+      Tesla.Middleware.KeepRequest
+    ]
 
-    with {:ok, credential} <- validate_credential(credential, skip_signing) do
-      options =
-        [
-          adapter: proxy_adapter,
-          credential: credential
-        ]
-        |> Tiki.Support.Helpers.clean_nil()
+    middlewares =
+      if opts[:access_token] do
+        middlewares ++
+          [{Tesla.Middleware.Headers, [{"Authorization", "Bearer #{opts[:access_token]}"}]}]
+      else
+        middlewares
+      end
 
-      middlewares = [
-        {Tesla.Middleware.BaseUrl, opts[:endpoint] || @default_endpoint},
-        {Tesla.Middleware.Opts, options},
-        # Tiki.Support.SignRequest,
-        Tiki.Support.SaveRequestBody
-      ]
+    middlewares =
+      if opts[:form_data] do
+        middlewares ++ [Tesla.Middleware.FormUrlencoded, Tesla.Middleware.DecodeJson]
+      else
+        middlewares ++ [Tesla.Middleware.JSON]
+      end
 
-      middlewares =
-        if opts[:form_data] do
-          middlewares ++ [Tesla.Middleware.FormUrlencoded, Tesla.Middleware.DecodeJson]
-        else
-          middlewares ++ [Tesla.Middleware.JSON]
-        end
+    # if config setting timeout, otherwise use default settings
+    middlewares =
+      if config.timeout do
+        [{Tesla.Middleware.Timeout, timeout: config.timeout} | middlewares]
+      else
+        middlewares
+      end
 
-      # if config setting timeout, otherwise use default settings
-      middlewares =
-        if config.timeout do
-          [{Tesla.Middleware.Timeout, timeout: config.timeout} | middlewares]
-        else
-          middlewares
-        end
-
-      {:ok, Tesla.client(middlewares ++ config.middlewares)}
-    end
+    {:ok, Tesla.client(middlewares ++ config.middlewares)}
   end
-
-  @credential_schema %{
-    client_id: [type: :string, required: true],
-    client_secret: [type: :string, required: true],
-    access_token: :string,
-    shop_id: :string
-  }
-  defp validate_credential(credential, false) do
-    Contrak.validate(credential, @credential_schema)
-  end
-
-  defp validate_credential(_, _), do: {:ok, nil}
 
   @doc """
   Perform a GET request

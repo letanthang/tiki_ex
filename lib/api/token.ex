@@ -22,7 +22,7 @@ defmodule Tiki.Token do
   def get_access_token(params, opts \\ []) do
     with {:ok, data} <- Contrak.validate(params, @get_access_token_schema),
          {:ok, client} <-
-           Client.new([endpoint: @endpoint, skip_signing: true, form_data: true] ++ opts) do
+           Client.new([endpoint: @endpoint, form_data: true] ++ opts) do
       Client.post(client, "/token", data)
     end
   end
@@ -41,7 +41,7 @@ defmodule Tiki.Token do
   def refresh_token(params, opts \\ []) do
     with {:ok, data} <- Contrak.validate(params, @refresh_token_schema),
          {:ok, client} <-
-           Client.new([endpoint: @endpoint, form_data: true, skip_signing: true] ++ opts) do
+           Client.new([endpoint: @endpoint, form_data: true] ++ opts) do
       Client.post(client, "/token", data)
     end
   end
