@@ -24,3 +24,6 @@ tiki-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+.iex.exs
+mix.lock
