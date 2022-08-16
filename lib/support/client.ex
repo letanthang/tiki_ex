@@ -14,7 +14,7 @@ defmodule Tiki.Client do
   Your custom reponse handler module must implement `handle_response/1`
   """
 
-  @default_endpoint "https://open-api.tiktokglobalshop.com"
+  @default_endpoint "https://api.tiki.vn/integration/v2/"
   @doc """
   Create a new client with given credential.
   Credential can be set using config.
