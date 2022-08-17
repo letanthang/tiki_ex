@@ -20,7 +20,7 @@ defmodule Tiki.Token do
     grant_type: [type: :string, default: "authorization_code"]
   }
   def get_access_token(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_access_token_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_access_token_schema),
          {:ok, client} <-
            Client.new([endpoint: @endpoint, form_data: true] ++ opts) do
       Client.post(client, "/token", data)
@@ -39,7 +39,7 @@ defmodule Tiki.Token do
     grant_type: [type: :string, default: "refresh_token"]
   }
   def refresh_token(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @refresh_token_schema),
+    with {:ok, data} <- Tarams.cast(params, @refresh_token_schema),
          {:ok, client} <-
            Client.new([endpoint: @endpoint, form_data: true] ++ opts) do
       Client.post(client, "/token", data)
