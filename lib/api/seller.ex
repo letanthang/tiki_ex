@@ -4,8 +4,8 @@ defmodule Tiki.Seller do
   """
   alias Tiki.Client
   alias Tiki.Support.Helpers
-  alias Tiki.Enums.WarehouseTypeEnum
-  alias Tiki.Enums.WarehouseStatusEnum
+  alias Tiki.Enums.WarehouseType
+  alias Tiki.Enums.WarehouseStatus
 
   @doc """
   Get seller info
@@ -23,8 +23,8 @@ defmodule Tiki.Seller do
   Ref: https://open.tiki.vn/docs/docs/current/api-references/seller-api/#get-seller-warehouse
   """
   @get_seller_warehouse_schema %{
-    status: [type: :integer, in: WarehouseStatusEnum.enum()],
-    type: [type: :integer, in: WarehouseTypeEnum.enum()],
+    status: [type: :integer, in: WarehouseStatus.enum()],
+    type: [type: :integer, in: WarehouseType.enum()],
     limit: :integer,
     page: :integer
   }
