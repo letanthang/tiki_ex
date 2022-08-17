@@ -4,18 +4,43 @@ defmodule Tiki.Order do
   """
 
   alias Tiki.Client
+  alias Tiki.Support.Helpers
+  alias Tiki.Enums.OrderItemConfirmationStatus
+  alias Tiki.Enums.OrderFulfillmentType
+  alias Tiki.Enums.OrderStatus
+  alias Tiki.Enums.OrderIncludableField
+  alias Tiki.Type.SetExpression
+  alias Tiki.Type.CommaSeparatedString
+  alias Tiki.Type.Timestamp
 
-  @list_order_schema %{}
+  @list_order_schema %{
+    page: [type: :integer, number: [min: 1]],
+    limit: [type: :integer, number: [min: 1]],
+    code: [type: {:array, :string}],
+    sku: [type: {:array, :string}],
+    item_confirmation_status: [type: :string, in: OrderItemConfirmationStatus.enum()],
+    item_inventory_type: SetExpression.type(["back_order", "instock", "preorder"]),
+    fulfillment_type: SetExpression.type(OrderFulfillmentType.enum()),
+    status: SetExpression.type(OrderStatus.enum()),
+    include: CommaSeparatedString.type(OrderIncludableField.enum()),
+    is_rma: :boolean,
+    filter_date_by: [type: :string, in: ~w(today last7days last30days)],
+    created_from_date: Timestamp.type(),
+    created_to_date: Timestamp.type(),
+    order_by: :string
+  }
   def list_order(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @list_order_schema),
+    with {:ok, data} <- Tarams.cast(params, @list_order_schema),
          {:ok, client} <- Client.new(opts) do
-      Client.get(client, "/orders", data)
+      data = Helpers.clean_nil(data)
+
+      Client.get(client, "/orders", query: data)
     end
   end
 
   @get_order_schema %{}
   def get_order(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_order_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_order_schema),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/orders/#{data.order_id}", data)
     end
@@ -31,7 +56,7 @@ defmodule Tiki.Order do
   """
   @confirm_stock_schema %{}
   def confirm_stock(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @confirm_stock_schema),
+    with {:ok, data} <- Tarams.cast(params, @confirm_stock_schema),
          {:ok, client} <- Client.new(opts) do
       Client.post(client, "/orders/#{data.order_id}/confirm-available", data)
     end
@@ -43,7 +68,7 @@ defmodule Tiki.Order do
   """
   @confirm_dropshipping_stock_schema %{}
   def confirm_dropshipping_stock(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @confirm_dropshipping_stock_schema),
+    with {:ok, data} <- Tarams.cast(params, @confirm_dropshipping_stock_schema),
          {:ok, client} <- Client.new(opts) do
       Client.post(client, "/orders/#{data.order_id}/dropship/confirm-available", data)
     end
@@ -54,7 +79,7 @@ defmodule Tiki.Order do
   """
   @get_expected_pickup_times_schema %{}
   def get_expected_pickup_times(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_expected_pickup_times_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_expected_pickup_times_schema),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/orders/dropship/expected-pickup-slots", data)
     end
@@ -68,7 +93,7 @@ defmodule Tiki.Order do
   """
   @list_seller_warehouse_schema %{}
   def list_seller_warhouse(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @list_seller_warehouse_schema),
+    with {:ok, data} <- Tarams.cast(params, @list_seller_warehouse_schema),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/seller-inventories", data)
     end
@@ -81,7 +106,7 @@ defmodule Tiki.Order do
   """
   @update_delivery_status_schema %{}
   def update_delivery_status(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @update_delivery_status_schema),
+    with {:ok, data} <- Tarams.cast(params, @update_delivery_status_schema),
          {:ok, client} <- Client.new(opts) do
       Client.post(client, "/order/#{data.code}/seller-delivery/update-delivery", data)
     end
@@ -96,7 +121,7 @@ defmodule Tiki.Order do
   """
   @update_crossborder_shipment_status_schema %{}
   def update_crossborder_shipment_status(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @update_crossborder_shipment_status_schema),
+    with {:ok, data} <- Tarams.cast(params, @update_crossborder_shipment_status_schema),
          {:ok, client} <- Client.new(opts) do
       Client.post(client, "/order/#{data.code}/cross-border/update-shipment", data)
     end
@@ -114,7 +139,7 @@ defmodule Tiki.Order do
   """
   @get_shipping_label_schema %{}
   def get_shipping_label(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_shipping_label_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_shipping_label_schema),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/order/#{data.code}/tiki-delivery/labels", data)
     end
@@ -132,7 +157,7 @@ defmodule Tiki.Order do
   """
   @get_invoice_label_schema %{}
   def get_invoice_label(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_invoice_label_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_invoice_label_schema),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/order/#{data.code}/seller-delivery/labels", data)
     end
@@ -150,7 +175,7 @@ defmodule Tiki.Order do
   """
   @get_dropship_shipping_label_schema %{}
   def get_dropship_shipping_label(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_dropship_shipping_label_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_dropship_shipping_label_schema),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/order/#{data.code}/dropship/labels", data)
     end
@@ -168,7 +193,7 @@ defmodule Tiki.Order do
   """
   @get_crossborder_shipping_label_schema %{}
   def get_crossborder_shipping_label(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_crossborder_shipping_label_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_crossborder_shipping_label_schema),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/order/#{data.code}/cross-border/labels", data)
     end

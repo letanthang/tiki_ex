@@ -29,7 +29,7 @@ defmodule Tiki.Seller do
     page: :integer
   }
   def get_seller_warehouse(params, opts \\ []) do
-    with {:ok, data} <- Contrak.validate(params, @get_seller_warehouse_schema),
+    with {:ok, data} <- Tarams.cast(params, @get_seller_warehouse_schema),
          data <- Helpers.clean_nil(data),
          {:ok, client} <- Client.new(opts) do
       Client.get(client, "/sellers/me/warehouses", query: data)
