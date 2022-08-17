@@ -56,11 +56,13 @@ defmodule Tiki.Type.CommaSeparatedString do
   @doc """
   Helper module to build schema expression for CommaSeparatedString type
   """
-  def type(allowed_values \\ nil) do
+  def type(opts \\ []) do
+    {allowed_values, opts} = Keyword.pop(opts, :in)
+
     [
       type: CommaSeparatedString,
       func: {CommaSeparatedString, :validate, [allowed_values]},
       into: {CommaSeparatedString, :dump}
-    ]
+    ] ++ opts
   end
 end
