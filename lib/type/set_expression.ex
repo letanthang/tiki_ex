@@ -65,6 +65,8 @@ defmodule Tiki.Type.SetExpression do
   @doc """
   Validate expression value in the allowed_values
   """
+  def validate(nil, _expression, _), do: :ok
+
   def validate(allowed_values, expression, _) when is_list(allowed_values) do
     if Enum.all?(expression.values, &(&1 in allowed_values)) do
       :ok
@@ -76,11 +78,13 @@ defmodule Tiki.Type.SetExpression do
   @doc """
   Helper module to build schema expression for SetExpression type
   """
-  def type(allowed_values) do
+  def type(opts \\ []) do
+    {allowed_values, opts} = Keyword.pop(opts, :in)
+
     [
       type: SetExpression,
       func: {SetExpression, :validate, [allowed_values]},
       into: {SetExpression, :dump}
-    ]
+    ] ++ opts
   end
 end

@@ -114,4 +114,33 @@ defmodule Tiki.Enums do
     item_fees: "item.fees",
     item_confirmation_histories: "item.confirmation_histories"
   )
+
+  # Failure cause	Description	Will cancel the order?
+  # - out_of_needs	Customer no longer needs the items	Yes
+  # - redelivery_appointment	Customer or seller wants to make another delivery attempt	No
+  # - out_of_stock	Products are out of stock	Yes
+  def_enum(DeliveryFailureCause, ["out_of_needs", "redelivery_appointment", "out_of_stock"])
+
+  # | Cross border shipment status       | Description                                    |
+  # |------------------------------------+------------------------------------------------|
+  # | transferring_to_foreign_warehouses | Orders transferring to your foreign warehouses |
+  # | has_come_to_foreign_warehouses     | Orders has come to your foreign warehouses     |
+  # | rotating_to_vietnam                | Orders rotating to vietnam                     |
+  # | customs_clearance                  | Customs clearance processing                   |
+  # | customs_clearance_complete         | Customs clearance complete                     |
+  # | item_arrived_in_vietnam            | Orders arrived in vietnam                      |
+  # | ready_for_delivery                 | Orders ready for delivery                      |
+  # | on_delivery                        | Orders on delivery                             |
+  # | **successful_delivery**            | Orders successful delivery                     |
+  def_enum(CrossborderShipmentStatus, [
+    "transferring_to_foreign_warehouses",
+    "has_come_to_foreign_warehouses",
+    "rotating_to_vietnam",
+    "customs_clearance",
+    "customs_clearance_complete",
+    "item_arrived_in_vietnam",
+    "ready_for_delivery",
+    "on_delivery",
+    "successful_delivery"
+  ])
 end
