@@ -143,4 +143,6 @@ defmodule Tiki.Enums do
     "on_delivery",
     "successful_delivery"
   ])
+
+  def_enum(ProductIncludableField, ["seller", "categories", "inventory", "attributes", "images"])
 end

@@ -12,7 +12,7 @@ defmodule Tiki.Client do
   Your custom reponse handler module must implement `handle_response/1`
   """
 
-  @default_endpoint "https://api.tiki.vn/integration/v2/"
+  @default_endpoint "https://api.tiki.vn/integration/v2.1/"
   @doc """
   Create new client
   **Options**
