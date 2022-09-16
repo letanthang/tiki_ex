@@ -8,7 +8,7 @@ defmodule Tiki.Product do
 
   alias Tiki.Type.CommaSeparatedString
   alias Tiki.Enums.ProductIncludableField
-  alias Tiki.Enums.ProductActive
+  alias Tiki.Enums.ProductActiveType
 
   @endpoint_v21 "https://api.tiki.vn/integration/v2.1/"
 
@@ -20,8 +20,8 @@ defmodule Tiki.Product do
   @list_product_schema %{
     category_id: [type: :integer],
     name: [type: :string],
-    active: [type: ProductActive.type],
-    include: [type: {:array, ProductIncludableField.Type}],
+    active: [type: :string, in: ProductActiveType.enum()],
+    include: [type: {:array, :string}, func: {__MODULE__, :validate_include_list}],
     page: [type: :integer, number: [min: 1]],
     limit: [type: :integer, number: [min: 1]],
     created_from_date: [type: :string],
@@ -35,6 +35,12 @@ defmodule Tiki.Product do
       data = Helpers.clean_nil(data)
       Client.post(client, "/products", data)
     end
+  end
+
+  def validate_include_list(item) do
+    if Enum.all?(item, &(&1 in ProductIncludableField.enum())),
+      do: :ok,
+      else: {:error, :invalid}
   end
 
   @doc """
@@ -60,23 +66,28 @@ defmodule Tiki.Product do
     variants: [
       type:
         {:array,
-        %{
-          sku: [type: :string, required: true],
-          min_code: [type: :string, required: true],
-          option1: [type: :string],
-          option2: [type: :string],
-          price: :float,
-          market_price: :float,
-          inventory_type: [type: :string, required: true],
-          seller_warehouse: [type: :string, required: true],
-          warehouse_stocks: [type: {:array, %{
-            warehouseId: [type: :integer, required: true],
-            qtyAvailable: [type: :integer, required: true],
-          }}, required: true],
-          brand_origin: [type: :string],
-          image: [type: :string, required: true],
-          images: [type: {:array, :string}, required: true],
-        }},
+         %{
+           sku: [type: :string, required: true],
+           min_code: [type: :string, required: true],
+           option1: [type: :string],
+           option2: [type: :string],
+           price: :float,
+           market_price: :float,
+           inventory_type: [type: :string, required: true],
+           seller_warehouse: [type: :string, required: true],
+           warehouse_stocks: [
+             type:
+               {:array,
+                %{
+                  warehouseId: [type: :integer, required: true],
+                  qtyAvailable: [type: :integer, required: true]
+                }},
+             required: true
+           ],
+           brand_origin: [type: :string],
+           image: [type: :string, required: true],
+           images: [type: {:array, :string}, required: true]
+         }},
       required: true
     ],
     meta_data: [
@@ -84,7 +95,7 @@ defmodule Tiki.Product do
         is_auto_turn_on: [type: :boolean]
       },
       required: true
-    ],
+    ]
   }
   def create_product(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @create_product_schema),
@@ -99,7 +110,7 @@ defmodule Tiki.Product do
   """
   @get_product_schema %{
     productId: [type: :integer, required: true],
-    includes: CommaSeparatedString.type(in: ProductIncludableField.enum()),
+    includes: CommaSeparatedString.type(in: ProductIncludableField.enum())
   }
   def get_product(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @get_product_schema),
@@ -136,7 +147,7 @@ defmodule Tiki.Product do
       required: true
     ],
     image: [type: :string],
-    images: [type: {:array, :string}],
+    images: [type: {:array, :string}]
   }
   def update_product_info(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @update_product_info_schema),
@@ -169,10 +180,14 @@ defmodule Tiki.Product do
     price: [type: :integer],
     active: [type: :boolean],
     seller_warehouse: [type: :string],
-    warehouse_quantities: [type: {:array, %{
-      warehouse_id: [type: :integer, required: true],
-      qty_available: [type: :integer, required: true],
-    }}],
+    warehouse_quantities: [
+      type:
+        {:array,
+         %{
+           warehouse_id: [type: :integer, required: true],
+           qty_available: [type: :integer, required: true]
+         }}
+    ]
   }
   def update_sku_info(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @update_sku_schema),

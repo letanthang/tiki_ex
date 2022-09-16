@@ -11,7 +11,6 @@ defmodule Tiki.Warehouse do
   """
   def list_warehouse_tiki(_params, opts \\ []) do
     with {:ok, client} <- Client.new(opts) do
-
       Client.get(client, "/warehouses/tiki")
     end
   end

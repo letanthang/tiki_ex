@@ -146,5 +146,5 @@ defmodule Tiki.Enums do
 
   def_enum(ProductIncludableField, ["seller", "categories", "inventory", "attributes", "images"])
 
-  def_enum(ProductActive, active: 1, inactive: 0)
+  def_enum(ProductActiveType, active: 1, inactive: 0)
 end

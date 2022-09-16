@@ -11,7 +11,7 @@ defmodule Tiki.Brand do
   Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-brand-by-name
   """
   @list_category_schema %{
-    name: [type: :string],
+    name: [type: :string]
   }
   def list_category(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @list_category_schema),
