@@ -8,9 +8,37 @@ defmodule Tiki.Product do
 
   alias Tiki.Type.CommaSeparatedString
   alias Tiki.Enums.ProductIncludableField
+  alias Tiki.Enums.ProductActive
+
+  @endpoint_v21 "https://api.tiki.vn/integration/v2.1/"
 
   @doc """
-  Ref: https://open.tiki.vn/docs/docs/current/api-references/order-api-v2/#update-delivery-status-for-seller-delivery
+  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-latest-products-v2-1
+
+  When you deliver the a seller delivery order, you need to tell whether the delivery is successful or not.
+  """
+  @list_product_schema %{
+    category_id: [type: :integer],
+    name: [type: :string],
+    active: [type: ProductActive.type],
+    include: [type: {:array, ProductIncludableField.Type}],
+    page: [type: :integer, number: [min: 1]],
+    limit: [type: :integer, number: [min: 1]],
+    created_from_date: [type: :string],
+    created_to_date: [type: :string],
+    updated_from_date: [type: :string],
+    updated_to_date: [type: :string]
+  }
+  def list_product(params, opts \\ []) do
+    with {:ok, data} <- Tarams.cast(params, @list_product_schema),
+         {:ok, client} <- Client.new([endpoint: @endpoint_v21, form_data: true] ++ opts) do
+      data = Helpers.clean_nil(data)
+      Client.post(client, "/products", data)
+    end
+  end
+
+  @doc """
+  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#create-product-request-v2-1
 
   When you deliver the a seller delivery order, you need to tell whether the delivery is successful or not.
   """
@@ -60,14 +88,14 @@ defmodule Tiki.Product do
   }
   def create_product(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @create_product_schema),
-         {:ok, client} <- Client.new(opts) do
+         {:ok, client} <- Client.new([endpoint: @endpoint_v21, form_data: true] ++ opts) do
       data = Helpers.clean_nil(data)
-      Client.post(client, "/products/#{data.code}/seller-delivery/update-delivery", data)
+      Client.post(client, "/requests", data)
     end
   end
 
   @doc """
-  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-category-detail
+  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-a-product-v2-1
   """
   @get_product_schema %{
     productId: [type: :integer, required: true],
@@ -75,14 +103,14 @@ defmodule Tiki.Product do
   }
   def get_product(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @get_product_schema),
-         {:ok, client} <- Client.new(opts) do
+         {:ok, client} <- Client.new([endpoint: @endpoint_v21, form_data: true] ++ opts) do
       data = Helpers.clean_nil(data)
       Client.get(client, "/products/#{data.productId}", query: data)
     end
   end
 
   @doc """
-  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-category-detail
+  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-a-product-by-original-sku
   """
   @get_product_by_schema %{
     original_sku: [type: :string, required: true]
@@ -148,9 +176,22 @@ defmodule Tiki.Product do
   }
   def update_sku_info(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @update_sku_schema),
-         {:ok, client} <- Client.new(opts) do
+         {:ok, client} <- Client.new([endpoint: @endpoint_v21, form_data: true] ++ opts) do
       data = Helpers.clean_nil(data)
       Client.put(client, "/products/updateSku", data)
+    end
+  end
+
+  @doc """
+  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#delete-a-product-request
+  """
+  @delete_schema %{
+    request_id: [type: :integer, required: true]
+  }
+  def delete_request(params, opts \\ []) do
+    with {:ok, data} <- Tarams.cast(params, @delete_schema),
+         {:ok, client} <- Client.new(opts) do
+      Client.delete(client, "/requests/#{data.request_id}")
     end
   end
 end
