@@ -61,7 +61,7 @@ defmodule Tiki.Category do
     attribute_id: [type: :integer, required: true],
     q: [type: :string],
     page: [type: :integer, number: [min: 1]],
-    limit: [type: :integer, number: [min: 1]]
+    limit: [type: :integer, number: [min: 20]]
   }
   def get_category_attribute_value(params, opts \\ []) do
     with {:ok, data} <- Tarams.cast(params, @get_category_attribute_value_schema),
@@ -82,6 +82,23 @@ defmodule Tiki.Category do
          {:ok, client} <- Client.new(opts) do
       data = Helpers.clean_nil(data)
       Client.get(client, "/categories/#{data.category_id}/optionLabels", query: data)
+    end
+  end
+
+  @doc """
+  Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-required-documents
+  """
+  @get_required_document_schema %{
+    category_id: [type: :integer, required: true],
+    brand_listdata_id: [type: :integer],
+    manufacture_listdata_id: [type: :integer],
+    publisher_listdata_id: [type: :integer]
+  }
+  def get_required_document(params, opts \\ []) do
+    with {:ok, data} <- Tarams.cast(params, @get_required_document_schema),
+         {:ok, client} <- Client.new(opts) do
+      data = Helpers.clean_nil(data)
+      Client.get(client, "/requests/requiredDocs", query: data)
     end
   end
 end

@@ -10,11 +10,13 @@ defmodule Tiki.Brand do
   Returns a list of brand managed by the authorized seller, base on a specific search query.
   Ref: https://open.tiki.vn/docs/docs/current/api-references/product-api/#get-brand-by-name
   """
-  @list_category_schema %{
-    name: [type: :string]
+  @list_brand_schema %{
+    name: [type: :string],
+    page: [type: :integer],
+    limit: [type: :integer]
   }
-  def list_category(params, opts \\ []) do
-    with {:ok, data} <- Tarams.cast(params, @list_category_schema),
+  def list_brand(params, opts \\ []) do
+    with {:ok, data} <- Tarams.cast(params, @list_brand_schema),
          {:ok, client} <- Client.new(opts) do
       data = Helpers.clean_nil(data)
 
