@@ -33,7 +33,7 @@ defmodule Tiki.Product do
     with {:ok, data} <- Tarams.cast(params, @list_product_schema),
          {:ok, client} <- Client.new([endpoint: @endpoint_v21, form_data: true] ++ opts) do
       data = Helpers.clean_nil(data)
-      Client.post(client, "/products", data)
+      Client.get(client, "/products", query: data)
     end
   end
 

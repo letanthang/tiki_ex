@@ -128,7 +128,7 @@ defmodule Tiki.Client do
 
   defp process(response) do
     module =
-      Application.get_env(:tiktok, :config, [])
+      Application.get_env(:tiki, :config, [])
       |> Keyword.get(:response_handler, __MODULE__)
 
     module.handle_response(response)
